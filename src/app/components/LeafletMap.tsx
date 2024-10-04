@@ -1,10 +1,9 @@
-'use client'; // Mark this component as a client component
+'use client';
 
 import { useEffect, useRef, useState } from 'react';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
-// Define the interface for a Destination
 interface Destination {
 	name: string;
 	lat: number;
@@ -17,7 +16,6 @@ export default function Home() {
 	const [destinations, setDestinations] = useState<Destination[]>([]);
 
 	useEffect(() => {
-		// Fetch data from the Next.js internal API route
 		const fetchDestinations = async () => {
 			const res = await fetch('/api/destinations');
 			const data = await res.json();
@@ -26,10 +24,8 @@ export default function Home() {
 
 		fetchDestinations();
 
-		// Initialize the map
 		const leafletMap = L.map(mapRef.current!).setView([20.0, 0.0], 2);
 
-		// Define base layers
 		const openStreetMapLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 			attribution: '© OpenStreetMap contributors',
 		}).addTo(leafletMap);
@@ -42,17 +38,14 @@ export default function Home() {
 			attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under ODbL.',
 		});
 
-		// Control for base layers
 		const baseLayers = {
 			'OpenStreetMap': openStreetMapLayer,
 			'ARC Gis': stamenTerrainLayer,
 			'Base Map' : baseMapLayer
 		};
 
-		// Add layer control
 		L.control.layers(baseLayers).addTo(leafletMap);
 
-		// Cleanup on unmount
 		setMap(leafletMap);
 		return () => {
 			leafletMap.remove();
@@ -60,9 +53,7 @@ export default function Home() {
 	}, []);
 
 	useEffect(() => {
-		// Add markers to the map
 		if (map) {
-			// Clear existing markers to avoid duplication
 			map.eachLayer((layer) => {
 				if (layer instanceof L.Marker) {
 					map.removeLayer(layer);
@@ -70,7 +61,7 @@ export default function Home() {
 			});
 
 			destinations.forEach((destination) => {
-				const marker = L.marker([destination.lat, destination.lon])
+				L.marker([destination.lat, destination.lon])
 					.addTo(map)
 					.bindPopup(destination.name);
 			});
