@@ -1,95 +1,111 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Leaflet Map</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-	<style>
-		body{
-			background-color: black;
-			color: #fed142;
-		}
-        #map {
+   <head>
+      <title>Leaflet Map</title>
+      <link
+         rel="stylesheet"
+         href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+      />
+      <style>
+         body {
+            background-color: black;
+            color: #fed142;
+         }
+         #map {
             height: 500px;
             width: 100%;
-        }
-        table {
+         }
+         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
-        }
-        table, th, td {
+         }
+         table,
+         th,
+         td {
             border: 1px solid black;
-        }
-        th, td {
+         }
+         th,
+         td {
             padding: 8px;
             text-align: left;
-        }
-        th {
+         }
+         th {
             background-color: #888;
-        }
-    </style>
-</head>
-<body>
-    <h1>Destinations Map</h1>
-    <div id="map"></div>
-    <h2>List of Cities and Coordinates</h2>
-    <table id="city-table">
-        <thead>
+         }
+      </style>
+   </head>
+   <body>
+      <h1>Destinations Map</h1>
+      <div id="map"></div>
+      <h2>List of Cities and Coordinates</h2>
+      <table id="city-table">
+         <thead>
             <tr>
-                <th>City</th>
-                <th>Latitude</th>
-                <th>Longitude</th>
+               <th>City</th>
+               <th>Latitude</th>
+               <th>Longitude</th>
+               <th>Action</th>
             </tr>
-        </thead>
-        <tbody>
+         </thead>
+         <tbody>
             <!-- Dynamic Content Will Be Injected Here -->
-        </tbody>
-    </table>
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script>
-        // Initialize the map
-        const map = L.map('map').setView([20.0, 0.0], 2);
+         </tbody>
+      </table>
+      <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+      <script>
+         // Initialize the map
+         const map = L.map("map").setView([20.0, 0.0], 2);
 
-        // Add OpenStreetMap tiles
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
+         // Add OpenStreetMap tiles
+         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution: "© OpenStreetMap contributors",
+         }).addTo(map);
 
-        // Fetch the destination data from the server and add markers
-        fetch('http://localhost:3003/destinations')
-            .then(response => response.json())
-            .then(destinations => {
-                destinations.forEach(destination => {
-                    L.marker([destination.lat, destination.lon])
-                        .addTo(map)
-                        .bindPopup(destination.name);
-                });
-				populateCityTable(destinations);
+         // Fetch the destination data from the server and add markers
+         fetch("http://localhost:3003/destinations")
+            .then((response) => response.json())
+            .then((destinations) => {
+               destinations.forEach((destination) => {
+                  L.marker([destination.lat, destination.lon])
+                     .addTo(map)
+                     .bindPopup(destination.name);
+               });
+               populateCityTable(destinations);
             });
 
-
-		     // Function to populate table with city data
-		function populateCityTable(destinations) {
+         function populateCityTable(destinations) {
             const tableBody = document.querySelector("#city-table tbody");
-            destinations.forEach(destination => {
-                const row = document.createElement("tr");
+            destinations.forEach((destination) => {
+               const row = document.createElement("tr");
 
-                const cityNameCell = document.createElement("td");
-                cityNameCell.textContent = destination.name;
+               const cityNameCell = document.createElement("td");
+               cityNameCell.textContent = destination.name;
 
-                const latCell = document.createElement("td");
-                latCell.textContent = destination.lat;
+               const latCell = document.createElement("td");
+               latCell.textContent = destination.lat;
 
-                const lonCell = document.createElement("td");
-                lonCell.textContent = destination.lon;
+               const lonCell = document.createElement("td");
+               lonCell.textContent = destination.lon;
 
-                row.appendChild(cityNameCell);
-                row.appendChild(latCell);
-                row.appendChild(lonCell);
+               // Create a button for zooming to the city's location
+               const actionCell = document.createElement("td");
+               const zoomButton = document.createElement("button");
+               zoomButton.textContent = "Zoom";
+               zoomButton.addEventListener("click", () => {
+                  // Zoom and center the map to the city's coordinates
+                  map.setView([destination.lat, destination.lon], 10); // Set zoom level to 10
+               });
+               actionCell.appendChild(zoomButton);
 
-                tableBody.appendChild(row);
+               row.appendChild(cityNameCell);
+               row.appendChild(latCell);
+               row.appendChild(lonCell);
+               row.appendChild(actionCell);
+
+               tableBody.appendChild(row);
             });
-        }
-    </script>
-</body>
+         }
+      </script>
+   </body>
 </html>
