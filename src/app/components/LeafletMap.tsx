@@ -24,7 +24,7 @@ export default function Home() {
 
 		fetchDestinations();
 
-		const leafletMap = L.map(mapRef.current!).setView([20.0, 0.0], 2);
+		const leafletMap = L.map(mapRef.current!).setView([15.0, 0.0], 2);
 
 		const openStreetMapLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 			attribution: '© OpenStreetMap contributors',
@@ -41,10 +41,25 @@ export default function Home() {
 		const baseLayers = {
 			'OpenStreetMap': openStreetMapLayer,
 			'ARC Gis': stamenTerrainLayer,
-			'Base Map' : baseMapLayer
+			'Base Map': baseMapLayer
 		};
 
+
+		// Custom reset view control
+		const ResetViewControl = L.Control.extend({
+			onAdd: function (map) {
+				const button = L.DomUtil.create('button', 'reset-view');
+				button.innerHTML = 'Reset View';
+				button.onclick = function () {
+					map.setView([20.0, 0.0], 2);
+				};
+				return button;
+			}
+		});
+		new ResetViewControl().addTo(leafletMap);
 		L.control.layers(baseLayers).addTo(leafletMap);
+		L.control.scale().addTo(leafletMap);
+		// L.control.fullscreen().addTo(leafletMap);
 
 		setMap(leafletMap);
 		return () => {
