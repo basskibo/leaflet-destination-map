@@ -4,16 +4,19 @@ import { useEffect, useRef, useState } from 'react';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
-interface Destination {
-	name: string;
-	lat: number;
-	lon: number;
-}
+// interface Destination {
+// 	name: string;
+// 	lat: number;
+// 	lon: number;
+// 	description?: string; // Optional description
+// }
 
 export default function Home() {
-	const mapRef = useRef<HTMLDivElement>(null);
-	const [map, setMap] = useState<L.Map | null>(null);
-	const [destinations, setDestinations] = useState<Destination[]>([]);
+	// const mapRef = useRef<HTMLDivElement>(null);
+	const mapRef = useRef(null);
+	const map = L.map; // or use directly from `L`
+	const [destinations, setDestinations] = useState([]);
+	// const [destinations, setDestinations] = useState<Destination[]>([]);
 
 	useEffect(() => {
 		const fetchDestinations = async () => {
@@ -24,7 +27,8 @@ export default function Home() {
 
 		fetchDestinations();
 
-		const leafletMap = L.map(mapRef.current!).setView([15.0, 0.0], 2);
+		// const leafletMap = L.map(mapRef.current!).setView([15.0, 0.0], 2);
+		const leafletMap = L.map(mapRef.current).setView([15.0, 0.0], 2);
 
 		const openStreetMapLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 			attribution: '© OpenStreetMap contributors',
@@ -83,7 +87,8 @@ export default function Home() {
 		}
 	}, [map, destinations]);
 
-	const zoomToCity = (lat: number, lon: number) => {
+	const zoomToCity = (lat, lon) => {
+	// const zoomToCity = (lat: number, lon: number) => {
 		if (map) {
 			map.setView([lat, lon], 10);
 		}

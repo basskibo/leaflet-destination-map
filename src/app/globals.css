@@ -26,3 +26,7 @@ body {
     text-wrap: balance;
   }
 }
+
+.leaflet-right {
+	width: 30% !important;
+}
