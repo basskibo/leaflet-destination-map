@@ -3,15 +3,12 @@
 import 'leaflet/dist/leaflet.css';
 import { useEffect } from 'react';
 
-// MapPage component
 const MapPage = () => {
     useEffect(() => {
-        // Dynamically import Leaflet and its plugins
         const loadLeaflet = async () => {
             const L = await import('leaflet');
             await import('leaflet-routing-machine');
 
-            // Check if the window object is defined (ensures client-side execution)
             if (typeof window !== 'undefined') {
                 const map = L.map('map').setView([45.2514, 19.8708], 13);
 
