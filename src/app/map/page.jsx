@@ -14,7 +14,8 @@ const coordinates = [
 const configuration = {
 	mapOptions: {
 		gm_layer: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-		stadia_sat_layer: 'https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.jpg'
+		stadia_sat_layer: 'https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.jpg',
+		sat: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
 	},
 };
 
@@ -37,7 +38,7 @@ export default function MapPage() {
 
 		const map = L.map('map').setView(defaultCoordinates, 13);
 
-		L.tileLayer(configuration.mapOptions.stadia_sat_layer, {
+		L.tileLayer(configuration.mapOptions.gm_layer, {
 			maxZoom: 30,
 			attribution: '',
 		}).addTo(map);
