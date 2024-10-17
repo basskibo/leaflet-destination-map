@@ -11,7 +11,6 @@ const coordinates = [
 	{ label: "Danube Park", lat: 45.255300574496346, lng: 19.85088770730801 },
 	{ label: "Z stanica", lat: 45.2653657676428, lng: 19.830854301049 },
 	{ label: "Novi Park", lat: 45.25605768553349, lng: 19.80846 },
-	{ label: "Novi Park", lat: 44.80727116507866,  lng: 20.474817604895193 },
 	
 ];
 
@@ -31,6 +30,7 @@ const locateOptions = {
 }
 
 export default function MapPage() {
+	const stadiaApiKey = process.env.NEXT_PUBLIC_STADIA_API_KEY;
 	const [mapInitialized, setMapInitialized] = useState(false);
 	const userCentered = useRef(false);
 	const userMarkerRef = useRef(null);
@@ -43,7 +43,7 @@ export default function MapPage() {
 			existingMap._leaflet_id = null;
 		}
 		console.log('useEffect:: updating the view ')
-		const map = L.map('map').setView([coordinates[0].lat, coordinates[0].lng], 13);
+		const map = L.map('map').setView([coordinates[0].lat, coordinates[0].lng], 15);
 
 
 		// L.tileLayer(mapConfig.mapOptions.gm_layer, {
@@ -168,7 +168,7 @@ export default function MapPage() {
 			attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under ODbL.',
 		});
 
-		const stadiamapsLayer = L.tileLayer('https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.png', {
+		const stadiamapsLayer = L.tileLayer(`https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.png&api_key=${stadiaApiKey}`, {
 			attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under ODbL.',
 		});
 		
@@ -179,7 +179,7 @@ export default function MapPage() {
 		const baseLayers = {
 			'OpenStreetMap': openStreetMapLayer,
 			'Base Map': baseMapsLayer,
-			'Stadia': stadiamapsLayer,
+			// 'Stadia': stadiamapsLayer,
 			"Sattelite": satelliteLayer
 		};
 
