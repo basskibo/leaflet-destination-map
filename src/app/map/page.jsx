@@ -14,6 +14,7 @@ const coordinates = [
 const configuration = {
 	mapOptions: {
 		gm_layer: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+		stadia_sat_layer: 'https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.jpg'
 	},
 };
 
@@ -23,6 +24,7 @@ export default function MapPage() {
 	const userCentered = useRef(false); // Track whether the map was centered on the user's location
 	const userMarkerRef = useRef(null); // Reference to the user's marker to update its position
 	const routingControlRef = useRef(null);
+	const userHeadingRef = useRef(null);
 	let updatedInitialView = false;
 
 	useEffect(() => {
@@ -35,10 +37,20 @@ export default function MapPage() {
 
 		const map = L.map('map').setView(defaultCoordinates, 13);
 
-		L.tileLayer(configuration.mapOptions.gm_layer, {
+		L.tileLayer(configuration.mapOptions.stadia_sat_layer, {
 			maxZoom: 30,
 			attribution: '',
 		}).addTo(map);
+
+		// L.control.locate({
+		// 	flyTo: true,
+		// 	setView: 'untilPan',
+		// 	keepCurrentZoomLevel: true,
+		// 	icon: 'fa fa-location-arrow',
+		// 	strings: {
+		// 		title: "Show me where I am"
+		// 	},
+		// }).addTo(map);
 
 		coordinates.forEach((location, index) => {
 			const customIcon = L.divIcon({
@@ -103,7 +115,7 @@ export default function MapPage() {
 
 						userMarkerRef.current = L.marker([userLat, userLng], { icon: userIcon }).addTo(map)
 						map.setView([userLat, userLng], 15);
-						
+
 						routingControlRef.current = L.Routing.control({
 							waypoints: [
 								L.latLng(userLat, userLng),
@@ -123,7 +135,7 @@ export default function MapPage() {
 								});
 							},
 							lineOptions: {
-								styles: [{ color: 'blue', opacity: 0.8, weight: 4, dashArray: '5, 10' }], 
+								styles: [{ color: 'blue', opacity: 0.8, weight: 4, dashArray: '5, 10' }],
 							},
 							routeWhileDragging: false,
 							draggableWaypoints: false,
@@ -144,7 +156,7 @@ export default function MapPage() {
 									L.latLng(coordinates[0].lat, coordinates[0].lng)
 								]);
 								routeUpdateTimer = null; // Reset the timer after updating
-							}, 3000); // 3 seconds delay (can increase to 5 seconds)
+							}, 1500); // 3 seconds delay (can increase to 5 seconds)
 						}
 					}
 					const routingContainers = document.querySelectorAll('.leaflet-routing-container');
@@ -155,13 +167,13 @@ export default function MapPage() {
 							container.style.display = 'none';
 						});
 					}
-				
+
 				},
 				(error) => {
 					console.error('Error getting location:', error);
 				}
 
-				
+
 			);
 		} else {
 			console.log('Geolocation is not supported by this browser.');
@@ -174,7 +186,7 @@ export default function MapPage() {
 		};
 	}, []);
 
-	
+
 	return <div>
 		<style jsx>{`
       .leaflet-routing-container {
