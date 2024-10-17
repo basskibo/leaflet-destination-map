@@ -41,7 +41,7 @@ export default function Home() {
 		const baseLayers = {
 			'OpenStreetMap': openStreetMapLayer,
 			'ARC Gis': stamenTerrainLayer,
-			'Base Map' : baseMapLayer
+			'Base Map': baseMapLayer
 		};
 
 		L.control.layers(baseLayers).addTo(leafletMap);
@@ -75,8 +75,8 @@ export default function Home() {
 	};
 
 	return (
-		<div className='mx-auto text-amber-400' style={{ background: '#010000' , color: '#fed142'}}>
-		
+		<div className='mx-auto text-amber-400' style={{ background: '#010000', color: '#fed142' }}>
+
 			<div ref={mapRef} style={{ height: '500px', width: '100%' }}></div>
 
 			<h2 className='font-semibold text-xl'>List of Cities and Coordinates</h2>

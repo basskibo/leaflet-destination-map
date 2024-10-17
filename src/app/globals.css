@@ -30,3 +30,11 @@ body {
 .leaflet-right {
 	width: 30% !important;
 }
+
+.leaflet-routing-container {
+	display: none !important;
+}
+
+.leaflet-top .leaflet-right {
+	display: none !important;
+}
