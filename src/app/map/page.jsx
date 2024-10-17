@@ -94,7 +94,7 @@ export default function MapPage() {
 					if (!updatedInitialView) {
 						// Create a custom user marker (Google Maps-like blue dot)
 						const userIcon = L.divIcon({
-							html: `<div style="background-color: #4285F4; border-radius: 50%; width: 15px; height: 15px; border: 4px solid #a7c3f2;"></div>`,
+							html: `<div style="background-color: #4285F4; border-radius: 50%; width: 15px; height: 15px; border: 5px solid #a7c3f2;"></div>`,
 							className: 'user-location-icon',
 							iconSize: [15, 15],
 							iconAnchor: [7.5, 7.5],
@@ -104,11 +104,37 @@ export default function MapPage() {
 							.bindPopup('You are here!')
 							.openPopup();
 						map.setView([userLat, userLng], 15); // Adjust the zoom level if needed
+						L.Routing.control({
+							waypoints: [
+								L.latLng(userLat, userLng),
+								L.latLng(coordinates[0].lat, coordinates[0].lng)
+							],
+							router: L.Routing.osrmv1({
+								serviceUrl: 'https://router.project-osrm.org/route/v1',
+							}),
+							lineOptions: {
+								styles: [{ color: 'blue', weight: 1 }], // Custom route color (blue)
+							},
+							createMarker: function (i, wp) {
+								// Custom marker for start (user) and end (attraction)
+								const markerColor = i === 0 ? 'green' : 'red';
+								return L.marker(wp.latLng, {
+
+								}).bindPopup(i === 0 ? 'Your Location' : coordinates[0].label);
+							},
+							routeWhileDragging: false,
+							draggableWaypoints: false,
+							addWaypoints: false,
+
+
+						}).addTo(map);
 						updatedInitialView = true;
 					} else {
 						// Update the position of the existing user marker
 						userMarkerRef.current.setLatLng([userLat, userLng]);
 					}
+
+
 				},
 				(error) => {
 					console.error('Error getting location:', error);
