@@ -2,60 +2,51 @@
 import { useEffect, useRef, useState } from 'react';
 import styles from './MapPage.module.css';
 
-const defaultCoordinates = [45.2552, 119.8426]; // Default center coordinates for the map
+const defaultCoordinates = [45.2514, 19.8708];
 const coordinates = [
-	{ "label": "Petrovaradin Fortress", "lat": 45.2514, "lng": 19.8708 },
-	{ "label": "The Name of Mary Church", "lat": 45.2552, "lng": 19.8426 },
-	{ "label": "Dunavska Street", "lat": 45.2574, "lng": 19.8433 },
-	{ "label": "Danube Park", "lat": 45.26, "lng": 19.8455 },
-	{ "label": "Z stanica", "lat": 45.2653657676428, "lng": 19.830854301049 }
+	{ label: "Petrovaradin Fortress", lat: 45.2514, lng: 19.8708 },
+	{ label: "The Name of Mary Church", lat: 45.2552, lng: 19.8426 },
+	{ label: "Dunavska Street", lat: 45.2574, lng: 19.8433 },
+	{ label: "Danube Park", lat: 45.26, lng: 19.8455 },
+	{ label: "Z stanica", lat: 45.2653657676428, lng: 19.830854301049 },
+	{ label: "Novi Park", lat: 45.25605768553349, lng: 19.80846 },
+	
 ];
 
-const configuration = {
+const mapConfig = {
 	mapOptions: {
+		os_layer: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
 		gm_layer: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-		stadia_sat_layer: 'https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.jpg',
-		sat: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+		sat: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+		osmb: 'https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.png',
 	},
 };
 
 export default function MapPage() {
-	console.log('Map page loaded >>>> ', new Date())
 	const [mapInitialized, setMapInitialized] = useState(false);
-	const userCentered = useRef(false); // Track whether the map was centered on the user's location
-	const userMarkerRef = useRef(null); // Reference to the user's marker to update its position
+	const userCentered = useRef(false);
+	const userMarkerRef = useRef(null);
 	const routingControlRef = useRef(null);
-	const userHeadingRef = useRef(null);
 	let updatedInitialView = false;
 
 	useEffect(() => {
-		console.log('use effect called ', new Date())
-		// Check if the map already exists and reset if necessary
 		const existingMap = L.DomUtil.get('map');
 		if (existingMap && existingMap._leaflet_id != null) {
 			existingMap._leaflet_id = null;
 		}
+		console.log('useEffect:: updating the view ')
+		const map = L.map('map')
+		// .setView(defaultCoordinates, 12);
 
-		const map = L.map('map').setView(defaultCoordinates, 13);
-
-		L.tileLayer(configuration.mapOptions.gm_layer, {
-			maxZoom: 30,
-			attribution: '',
-		}).addTo(map);
-
-		// L.control.locate({
-		// 	flyTo: true,
-		// 	setView: 'untilPan',
-		// 	keepCurrentZoomLevel: true,
-		// 	icon: 'fa fa-location-arrow',
-		// 	strings: {
-		// 		title: "Show me where I am"
-		// 	},
+		// L.tileLayer(mapConfig.mapOptions.gm_layer, {
+		// 	maxZoom: 20,
+		// 	minZoom: 0,
+		// 	attribution: '',
 		// }).addTo(map);
 
 		coordinates.forEach((location, index) => {
 			const customIcon = L.divIcon({
-				html: `<div style="background-color: #BB152C; color: white; border-radius: 50%; width: 30px; height: 30px;  text-align: center; line-height: 30px; font-weight: bolder; font-size: 20px">${index + 1}</div>`,
+				html: `<div style="background-color: #7B0F0F; border: '5px solid #000'; color: white; border-radius: 50%; width: 30px; height: 30px; text-align: center; line-height: 30px; font-weight: bolder; font-size: 20px">${index + 1}</div>`,
 				className: 'custom-div-icon',
 				iconSize: [30, 30],
 				iconAnchor: [15, 30],
@@ -66,7 +57,6 @@ export default function MapPage() {
 				.bindPopup(location.label);
 		});
 
-		// Add routing control
 		const waypoints = coordinates.map((location) =>
 			L.latLng(location.lat, location.lng)
 		);
@@ -76,12 +66,15 @@ export default function MapPage() {
 			router: L.Routing.osrmv1({
 				serviceUrl: 'https://router.project-osrm.org/route/v1',
 			}),
-			createMarker: function (i, wp) {
+			lineOptions: {
+				styles: [{ color: '#B61010', opacity:1 , weight: 5 }],
+			},
+			createMarker: (i, wp) => {
 				return L.marker(wp.latLng, {
 					icon: L.divIcon({
-						html: `<div style="background-color: red; color: white; border-radius: 50%; width: 30px; height: 30px; text-align: center; line-height: 30px;">${i + 1}</div>`,
+						html: `<div style="background-color: #B61010; color: white; border-radius: 5%; width:100%; height: 30px; font-weight: bolder; text-align:  center; line-height: 30px;">${coordinates[i].label}</div>`,
 						className: 'custom-div-icon',
-						iconSize: [30, 30],
+						iconSize: [120, 50],
 						iconAnchor: [15, 30],
 					}),
 				}).bindPopup(coordinates[i].label);
@@ -92,12 +85,8 @@ export default function MapPage() {
 			show: false,
 		}).addTo(map);
 
-		// const routingContainer = document.querySelector('.leaflet-routing-container');
-		// if (routingContainer) {
-		// 	routingContainer.style.display = 'none';
-		// }
+		removeRoutingTable();
 
-		// Add user's current location to the map (optional)
 		if (navigator.geolocation) {
 			let routeUpdateTimer;
 			navigator.geolocation.watchPosition(
@@ -106,7 +95,6 @@ export default function MapPage() {
 					const userLng = position.coords.longitude;
 
 					if (!updatedInitialView) {
-						// Create a custom user marker (Google Maps-like blue dot)
 						const userIcon = L.divIcon({
 							html: `<div style="background-color: #4285F4; border-radius: 50%; width: 15px; height: 15px; border: 10px solid #a7c3f2;"></div>`,
 							className: 'user-location-icon',
@@ -114,27 +102,19 @@ export default function MapPage() {
 							iconAnchor: [7.5, 7.5],
 						});
 
-						userMarkerRef.current = L.marker([userLat, userLng], { icon: userIcon }).addTo(map)
-						map.setView([userLat, userLng], 15);
+						userMarkerRef.current = L.marker([userLat, userLng], { icon: userIcon }).addTo(map);
+						console.log('On user location change >>>')
+						map.setView([userLat, userLng], 12);
 
 						routingControlRef.current = L.Routing.control({
 							waypoints: [
 								L.latLng(userLat, userLng),
-								L.latLng(coordinates[0].lat, coordinates[0].lng)
+								L.latLng(coordinates[0].lat, coordinates[0].lng),
 							],
 							router: L.Routing.osrmv1({
 								serviceUrl: 'https://router.project-osrm.org/route/v1',
 							}),
-							createMarker: function (i, wp) {
-								return L.marker(wp.latLng, {
-									icon: L.divIcon({
-										html: `<div style="display: none; background-color: red; color: white; border-radius: 50%; width: 30px; height: 30px; text-align: center; line-height: 30px;">${i + 1}</div>`,
-										className: 'custom-div-icon',
-										iconSize: [0, 0],
-										iconAnchor: [0, 0],
-									}),
-								});
-							},
+							createMarker: () => null,
 							lineOptions: {
 								styles: [{ color: 'blue', opacity: 0.8, weight: 4, dashArray: '5, 10' }],
 							},
@@ -143,75 +123,118 @@ export default function MapPage() {
 							addWaypoints: false,
 							show: false,
 						}).addTo(map);
+						removeRoutingTable();
 						updatedInitialView = true;
 					} else {
-						// Update the position of the existing user marker
 						userMarkerRef.current.setLatLng([userLat, userLng]);
 
-						// Throttle route updates (update every 3-5 seconds)
 						if (!routeUpdateTimer) {
 							routeUpdateTimer = setTimeout(() => {
-								// Update the route to the first destination
 								routingControlRef.current.setWaypoints([
 									L.latLng(userLat, userLng),
-									L.latLng(coordinates[0].lat, coordinates[0].lng)
+									L.latLng(coordinates[0].lat, coordinates[0].lng),
 								]);
-								routeUpdateTimer = null; // Reset the timer after updating
-							}, 1500); // 3 seconds delay (can increase to 5 seconds)
+								routeUpdateTimer = null;
+							}, 1500);
 						}
 					}
-					const routingContainers = document.querySelectorAll('.leaflet-routing-container');
-					console.log('found containers >> ', routingContainers);
-					if (routingContainers.length > 0) {
-						console.log('removing all sidebars >>>>>');
-						routingContainers.forEach(container => {
-							container.style.display = 'none';
-						});
-					}
-
 				},
-				(error) => {
-					console.error('Error getting location:', error);
+				(error) => console.error('Error getting location:', error),
+				{
+					maximumAge: 3000,
+					timeout: 5000,
+					enableHighAccuracy: true,
 				}
-
-
 			);
 		} else {
 			console.log('Geolocation is not supported by this browser.');
 		}
-		// Cleanup function to remove the map when component unmounts
-		return () => {
-			if (map) {
-				map.remove();
-			}
+
+
+		const openStreetMapLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+			attribution: '© OpenStreetMap contributors',
+		}).addTo(map);
+
+		const openStreetMapLayer2 = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+			attribution: '© OpenStreetMap contributors',
+		})
+
+		const baseMapsLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+			attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under ODbL.',
+		});
+
+		const osmbLayer = L.tileLayer('https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.png', {
+			attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under ODbL.',
+		});
+		
+		const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+			attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under ODbL.',
+		});
+
+		const baseLayers = {
+			'OpenStreetMap': openStreetMapLayer,
+			'OpenStreetMap2': openStreetMapLayer2,
+			'Base Map layer': baseMapsLayer,
+			'OSMB': osmbLayer,
+			"Sattelite": satelliteLayer
 		};
+
+		L.control.layers(baseLayers).addTo(map);
+		return () => map && map.remove();
 	}, []);
 
+	const removeRoutingTable = () => {
+		const routingContainers = document.querySelectorAll('.leaflet-routing-container');
+		routingContainers.forEach(container => {
+			container.style.display = 'none';
+		});
+	};
 
-	return <div>
-		<style jsx>{`
-      .leaflet-routing-container {
-        display: none !important;
-      }
-    `}</style>
-		<div style={{
-			width: '100%', paddingLeft: '1rem', background: '#cecece', display: 'flex',
-			flexDirection: 'row', justifyContent: 'start', alignItems: 'center', gap: '2rem',
-			borderBottom: '2px solid #fed142', height: '3rem'
-		}}>
-			<a style={{
-				color: '#010101', fontWeight: 'bolder',
-				fontSize: '1.2rem', textDecoration: 'none'
-			}} href="/">
-				Map
-			</a>
-			<a style={{
-				color: '#010101', fontWeight: 'bolder',
-				fontSize: '1.2rem', textDecoration: 'none'
-			}} href="/map">
-				Routing map
-			</a>
+	return (
+		<div>
+			<style jsx>{`
+				.leaflet-routing-container {
+					display: none !important;
+				}
+			`}</style>
+			<div
+				style={{
+					width: '100%',
+					paddingLeft: '1rem',
+					background: '#cecece',
+					display: 'flex',
+					flexDirection: 'row',
+					justifyContent: 'start',
+					alignItems: 'center',
+					gap: '2rem',
+					borderBottom: '2px solid #fed142',
+					height: '3rem',
+				}}
+			>
+				<a
+					style={{
+						color: '#010101',
+						fontWeight: 'bolder',
+						fontSize: '1.2rem',
+						textDecoration: 'none',
+					}}
+					href="/"
+				>
+					Map
+				</a>
+				<a
+					style={{
+						color: '#010101',
+						fontWeight: 'bolder',
+						fontSize: '1.2rem',
+						textDecoration: 'none',
+					}}
+					href="/map"
+				>
+					Routing map
+				</a>
+			</div>
+			<div id="map" style={{ height: '100vh', width: '100%' }} />
 		</div>
-		<div id="map" style={{ height: '100vh', width: '100%' }} />
-	</div>;
+	);
 }
