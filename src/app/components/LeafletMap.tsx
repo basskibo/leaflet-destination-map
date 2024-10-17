@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
+import * as L from 'leaflet';
 
 interface Destination {
 	name: string;
@@ -12,7 +12,7 @@ interface Destination {
 
 export default function Home() {
 	const mapRef = useRef<HTMLDivElement>(null);
-	const [map, setMap] = useState<L.Map | null>(null);
+	const [map, setMap] = useState<L.Map | null>(null); // Correct type for Leaflet map
 	const [destinations, setDestinations] = useState<Destination[]>([]);
 
 	useEffect(() => {
@@ -76,12 +76,7 @@ export default function Home() {
 
 	return (
 		<div className='mx-auto text-amber-400' style={{ background: '#010000' , color: '#fed142'}}>
-			<h2>Destinations Map</h2>
-			<a style={{ padding : '5px', color: '#fed142', fontWeight: 'bolder', 
-				fontSize: '1.2rem', border: '1px solid #fed142', marginBottom: '5px'
-			 }} href="/map">
-				Routing map
-			</a>
+		
 			<div ref={mapRef} style={{ height: '500px', width: '100%' }}></div>
 
 			<h2 className='font-semibold text-xl'>List of Cities and Coordinates</h2>
