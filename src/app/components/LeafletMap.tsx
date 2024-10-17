@@ -4,19 +4,16 @@ import { useEffect, useRef, useState } from 'react';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
-// interface Destination {
-// 	name: string;
-// 	lat: number;
-// 	lon: number;
-// 	description?: string; // Optional description
-// }
+interface Destination {
+	name: string;
+	lat: number;
+	lon: number;
+}
 
 export default function Home() {
-	// const mapRef = useRef<HTMLDivElement>(null);
-	const mapRef = useRef(null);
-	const map = L.map; // or use directly from `L`
-	const [destinations, setDestinations] = useState([]);
-	// const [destinations, setDestinations] = useState<Destination[]>([]);
+	const mapRef = useRef<HTMLDivElement>(null);
+	const [map, setMap] = useState<L.Map | null>(null);
+	const [destinations, setDestinations] = useState<Destination[]>([]);
 
 	useEffect(() => {
 		const fetchDestinations = async () => {
@@ -27,8 +24,7 @@ export default function Home() {
 
 		fetchDestinations();
 
-		// const leafletMap = L.map(mapRef.current!).setView([15.0, 0.0], 2);
-		const leafletMap = L.map(mapRef.current).setView([15.0, 0.0], 2);
+		const leafletMap = L.map(mapRef.current!).setView([20.0, 0.0], 2);
 
 		const openStreetMapLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 			attribution: '© OpenStreetMap contributors',
@@ -45,25 +41,10 @@ export default function Home() {
 		const baseLayers = {
 			'OpenStreetMap': openStreetMapLayer,
 			'ARC Gis': stamenTerrainLayer,
-			'Base Map': baseMapLayer
+			'Base Map' : baseMapLayer
 		};
 
-
-		// Custom reset view control
-		const ResetViewControl = L.Control.extend({
-			onAdd: function (map) {
-				const button = L.DomUtil.create('button', 'reset-view');
-				button.innerHTML = 'Reset View';
-				button.onclick = function () {
-					map.setView([20.0, 0.0], 2);
-				};
-				return button;
-			}
-		});
-		new ResetViewControl().addTo(leafletMap);
 		L.control.layers(baseLayers).addTo(leafletMap);
-		L.control.scale().addTo(leafletMap);
-		// L.control.fullscreen().addTo(leafletMap);
 
 		setMap(leafletMap);
 		return () => {
@@ -87,16 +68,20 @@ export default function Home() {
 		}
 	}, [map, destinations]);
 
-	const zoomToCity = (lat, lon) => {
-	// const zoomToCity = (lat: number, lon: number) => {
+	const zoomToCity = (lat: number, lon: number) => {
 		if (map) {
 			map.setView([lat, lon], 10);
 		}
 	};
 
 	return (
-		<div className='mx-auto text-amber-400'>
-			<h1 className='font-extrabold text-2xl'>Destinations Map</h1>
+		<div className='mx-auto text-amber-400' style={{ background: '#010000' , color: '#fed142'}}>
+			<h2>Destinations Map</h2>
+			<a style={{ padding : '5px', color: '#fed142', fontWeight: 'bolder', 
+				fontSize: '1.2rem', border: '1px solid #fed142', marginBottom: '5px'
+			 }} href="/map">
+				Routing map
+			</a>
 			<div ref={mapRef} style={{ height: '500px', width: '100%' }}></div>
 
 			<h2 className='font-semibold text-xl'>List of Cities and Coordinates</h2>

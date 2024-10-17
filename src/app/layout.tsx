@@ -24,6 +24,11 @@ export default function RootLayout({
         <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js" />
       </head>
       <body className={inter.className}>
+		<style>{`
+          body {
+            background: #010000;
+          }
+        `}</style>
         {children}
       </body>
     </html>
