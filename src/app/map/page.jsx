@@ -22,6 +22,7 @@ export default function MapPage() {
 	const [mapInitialized, setMapInitialized] = useState(false);
 	const userCentered = useRef(false); // Track whether the map was centered on the user's location
 	const userMarkerRef = useRef(null); // Reference to the user's marker to update its position
+	const routingControlRef = useRef(null);
 	let updatedInitialView = false;
 
 	useEffect(() => {
@@ -85,6 +86,7 @@ export default function MapPage() {
 
 		// Add user's current location to the map (optional)
 		if (navigator.geolocation) {
+			let routeUpdateTimer;
 			navigator.geolocation.watchPosition(
 				(position) => {
 					const userLat = position.coords.latitude;
@@ -100,9 +102,9 @@ export default function MapPage() {
 						});
 
 						userMarkerRef.current = L.marker([userLat, userLng], { icon: userIcon }).addTo(map)
-				
-						map.setView([userLat, userLng], 15); // Adjust the zoom level if needed
-						L.Routing.control({
+						map.setView([userLat, userLng], 15);
+						
+						routingControlRef.current = L.Routing.control({
 							waypoints: [
 								L.latLng(userLat, userLng),
 								L.latLng(coordinates[0].lat, coordinates[0].lng)
@@ -127,15 +129,23 @@ export default function MapPage() {
 							draggableWaypoints: false,
 							addWaypoints: false,
 							show: false,
-						
-
-
 						}).addTo(map);
-					
 						updatedInitialView = true;
 					} else {
 						// Update the position of the existing user marker
 						userMarkerRef.current.setLatLng([userLat, userLng]);
+
+						// Throttle route updates (update every 3-5 seconds)
+						if (!routeUpdateTimer) {
+							routeUpdateTimer = setTimeout(() => {
+								// Update the route to the first destination
+								routingControlRef.current.setWaypoints([
+									L.latLng(userLat, userLng),
+									L.latLng(coordinates[0].lat, coordinates[0].lng)
+								]);
+								routeUpdateTimer = null; // Reset the timer after updating
+							}, 3000); // 3 seconds delay (can increase to 5 seconds)
+						}
 					}
 					const routingContainers = document.querySelectorAll('.leaflet-routing-container');
 					console.log('found containers >> ', routingContainers);
