@@ -4,12 +4,14 @@ import styles from './MapPage.module.css';
 
 const defaultCoordinates = [45.2514, 19.8708];
 const coordinates = [
+	{ label: "Kej", lat: 45.252869724193786, lng: 19.856360549467105 },
 	{ label: "Petrovaradin Fortress", lat: 45.2514, lng: 19.8708 },
-	{ label: "The Name of Mary Church", lat: 45.2552, lng: 19.8426 },
-	{ label: "Dunavska Street", lat: 45.2574, lng: 19.8433 },
-	{ label: "Danube Park", lat: 45.26, lng: 19.8455 },
+	{ label: "The Cathedral", lat: 45.2552, lng: 19.8426 },
+	// { label: "Dunavska Street", lat: 45.2574, lng: 19.8433 },
+	{ label: "Danube Park", lat: 45.255300574496346, lng: 19.85088770730801 },
 	{ label: "Z stanica", lat: 45.2653657676428, lng: 19.830854301049 },
 	{ label: "Novi Park", lat: 45.25605768553349, lng: 19.80846 },
+	{ label: "Novi Park", lat: 44.80727116507866,  lng: 20.474817604895193 },
 	
 ];
 
@@ -21,6 +23,12 @@ const mapConfig = {
 		osmb: 'https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.png',
 	},
 };
+
+
+const locateOptions = {
+	setView: 'untilPanOrZoom',
+	flyTo: true
+}
 
 export default function MapPage() {
 	const [mapInitialized, setMapInitialized] = useState(false);
@@ -35,14 +43,15 @@ export default function MapPage() {
 			existingMap._leaflet_id = null;
 		}
 		console.log('useEffect:: updating the view ')
-		const map = L.map('map')
-		// .setView(defaultCoordinates, 12);
+		const map = L.map('map').setView([coordinates[0].lat, coordinates[0].lng], 13);
+
 
 		// L.tileLayer(mapConfig.mapOptions.gm_layer, {
 		// 	maxZoom: 20,
 		// 	minZoom: 0,
 		// 	attribution: '',
 		// }).addTo(map);
+		L.control.locate().addTo(map);
 
 		coordinates.forEach((location, index) => {
 			const customIcon = L.divIcon({
@@ -87,83 +96,79 @@ export default function MapPage() {
 
 		removeRoutingTable();
 
-		if (navigator.geolocation) {
-			let routeUpdateTimer;
-			navigator.geolocation.watchPosition(
-				(position) => {
-					const userLat = position.coords.latitude;
-					const userLng = position.coords.longitude;
+		// if (navigator.geolocation) {
+		// 	let routeUpdateTimer;
+		// 	navigator.geolocation.watchPosition(
+		// 		(position) => {
+		// 			const userLat = position.coords.latitude;
+		// 			const userLng = position.coords.longitude;
 
-					if (!updatedInitialView) {
-						const userIcon = L.divIcon({
-							html: `<div style="background-color: #4285F4; border-radius: 50%; width: 15px; height: 15px; border: 10px solid #a7c3f2;"></div>`,
-							className: 'user-location-icon',
-							iconSize: [15, 15],
-							iconAnchor: [7.5, 7.5],
-						});
+		// 			if (!updatedInitialView) {
+		// 				const userIcon = L.divIcon({
+		// 					html: `<div style="background-color: #4285F4; border-radius: 50%; width: 15px; height: 15px; border: 10px solid #a7c3f2;"></div>`,
+		// 					className: 'user-location-icon',
+		// 					iconSize: [15, 15],
+		// 					iconAnchor: [7.5, 7.5],
+		// 				});
 
-						userMarkerRef.current = L.marker([userLat, userLng], { icon: userIcon }).addTo(map);
-						console.log('On user location change >>>')
-						map.setView([userLat, userLng], 12);
+		// 				userMarkerRef.current = L.marker([userLat, userLng], { icon: userIcon }).addTo(map);
+		// 				console.log('On user location change >>>')
+		// 				// map.setView([userLat, userLng], 13);
 
-						routingControlRef.current = L.Routing.control({
-							waypoints: [
-								L.latLng(userLat, userLng),
-								L.latLng(coordinates[0].lat, coordinates[0].lng),
-							],
-							router: L.Routing.osrmv1({
-								serviceUrl: 'https://router.project-osrm.org/route/v1',
-							}),
-							createMarker: () => null,
-							lineOptions: {
-								styles: [{ color: 'blue', opacity: 0.8, weight: 4, dashArray: '5, 10' }],
-							},
-							routeWhileDragging: false,
-							draggableWaypoints: false,
-							addWaypoints: false,
-							show: false,
-						}).addTo(map);
-						removeRoutingTable();
-						updatedInitialView = true;
-					} else {
-						userMarkerRef.current.setLatLng([userLat, userLng]);
+		// 				routingControlRef.current = L.Routing.control({
+		// 					waypoints: [
+		// 						L.latLng(userLat, userLng),
+		// 						L.latLng(coordinates[0].lat, coordinates[0].lng),
+		// 					],
+		// 					router: L.Routing.osrmv1({
+		// 						serviceUrl: 'https://router.project-osrm.org/route/v1',
+		// 					}),
+		// 					createMarker: () => null,
+		// 					lineOptions: {
+		// 						styles: [{ color: 'blue', opacity: 0.8, weight: 4, dashArray: '5, 10' }],
+		// 					},
+		// 					routeWhileDragging: false,
+		// 					draggableWaypoints: false,
+		// 					addWaypoints: false,
+		// 					show: false,
+		// 				}).addTo(map);
+		// 				removeRoutingTable();
+		// 				updatedInitialView = true;
+		// 			} else {
+		// 				userMarkerRef.current.setLatLng([userLat, userLng]);
 
-						if (!routeUpdateTimer) {
-							routeUpdateTimer = setTimeout(() => {
-								routingControlRef.current.setWaypoints([
-									L.latLng(userLat, userLng),
-									L.latLng(coordinates[0].lat, coordinates[0].lng),
-								]);
-								routeUpdateTimer = null;
-							}, 1500);
-						}
-					}
-				},
-				(error) => console.error('Error getting location:', error),
-				{
-					maximumAge: 3000,
-					timeout: 5000,
-					enableHighAccuracy: true,
-				}
-			);
-		} else {
-			console.log('Geolocation is not supported by this browser.');
-		}
+		// 				if (!routeUpdateTimer) {
+		// 					routeUpdateTimer = setTimeout(() => {
+		// 						routingControlRef.current.setWaypoints([
+		// 							L.latLng(userLat, userLng),
+		// 							L.latLng(coordinates[0].lat, coordinates[0].lng),
+		// 						]);
+		// 						routeUpdateTimer = null;
+		// 					}, 1500);
+		// 				}
+		// 			}
+		// 		},
+		// 		(error) => console.error('Error getting location:', error),
+		// 		{
+		// 			maximumAge: 3000,
+		// 			timeout: 5000,
+		// 			enableHighAccuracy: true,
+		// 		}
+		// 	);
+		// } else {
+		// 	console.log('Geolocation is not supported by this browser.');
+		// }
 
 
 		const openStreetMapLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 			attribution: '© OpenStreetMap contributors',
 		}).addTo(map);
 
-		const openStreetMapLayer2 = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-			attribution: '© OpenStreetMap contributors',
-		})
-
 		const baseMapsLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
 			attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under ODbL.',
 		});
 
-		const osmbLayer = L.tileLayer('https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.png', {
+		const stadiamapsLayer = L.tileLayer('https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.png', {
 			attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under ODbL.',
 		});
 		
@@ -173,9 +178,8 @@ export default function MapPage() {
 
 		const baseLayers = {
 			'OpenStreetMap': openStreetMapLayer,
-			'OpenStreetMap2': openStreetMapLayer2,
-			'Base Map layer': baseMapsLayer,
-			'OSMB': osmbLayer,
+			'Base Map': baseMapsLayer,
+			'Stadia': stadiamapsLayer,
 			"Sattelite": satelliteLayer
 		};
 

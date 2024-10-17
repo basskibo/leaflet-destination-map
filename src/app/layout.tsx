@@ -22,7 +22,9 @@ export default function RootLayout({
         <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
         <script src="https://unpkg.com/leaflet/dist/leaflet.js" />
         <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js" />
-      </head>
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.css" />
+		<script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.js"></script>
+	</head>
       <body className={inter.className}>
 		<style>{`
           body {
