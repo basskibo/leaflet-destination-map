@@ -18,28 +18,27 @@ const configuration = {
 };
 
 export default function MapPage() {
+	console.log('Map page loaded >>>> ', new Date())
 	const [mapInitialized, setMapInitialized] = useState(false);
 	const userCentered = useRef(false); // Track whether the map was centered on the user's location
 	const userMarkerRef = useRef(null); // Reference to the user's marker to update its position
 	let updatedInitialView = false;
 
 	useEffect(() => {
+		console.log('use effect called ', new Date())
 		// Check if the map already exists and reset if necessary
 		const existingMap = L.DomUtil.get('map');
 		if (existingMap && existingMap._leaflet_id != null) {
 			existingMap._leaflet_id = null;
 		}
 
-		// Initialize the map
 		const map = L.map('map').setView(defaultCoordinates, 13);
 
-		// Add tile layer
 		L.tileLayer(configuration.mapOptions.gm_layer, {
 			maxZoom: 30,
 			attribution: '',
 		}).addTo(map);
 
-		// Add markers to the map
 		coordinates.forEach((location, index) => {
 			const customIcon = L.divIcon({
 				html: `<div style="background-color: #BB152C; color: white; border-radius: 50%; width: 30px; height: 30px;  text-align: center; line-height: 30px; font-weight: bolder; font-size: 20px">${index + 1}</div>`,
@@ -79,10 +78,10 @@ export default function MapPage() {
 			show: false,
 		}).addTo(map);
 
-		const routingContainer = document.querySelector('.leaflet-routing-container');
-		if (routingContainer) {
-			routingContainer.style.display = 'none';
-		}
+		// const routingContainer = document.querySelector('.leaflet-routing-container');
+		// if (routingContainer) {
+		// 	routingContainer.style.display = 'none';
+		// }
 
 		// Add user's current location to the map (optional)
 		if (navigator.geolocation) {
@@ -94,15 +93,14 @@ export default function MapPage() {
 					if (!updatedInitialView) {
 						// Create a custom user marker (Google Maps-like blue dot)
 						const userIcon = L.divIcon({
-							html: `<div style="background-color: #4285F4; border-radius: 50%; width: 15px; height: 15px; border: 5px solid #a7c3f2;"></div>`,
+							html: `<div style="background-color: #4285F4; border-radius: 50%; width: 15px; height: 15px; border: 10px solid #a7c3f2;"></div>`,
 							className: 'user-location-icon',
 							iconSize: [15, 15],
 							iconAnchor: [7.5, 7.5],
 						});
 
 						userMarkerRef.current = L.marker([userLat, userLng], { icon: userIcon }).addTo(map)
-							.bindPopup('You are here!')
-							.openPopup();
+				
 						map.setView([userLat, userLng], 15); // Adjust the zoom level if needed
 						L.Routing.control({
 							waypoints: [
@@ -112,38 +110,52 @@ export default function MapPage() {
 							router: L.Routing.osrmv1({
 								serviceUrl: 'https://router.project-osrm.org/route/v1',
 							}),
-							lineOptions: {
-								styles: [{ color: 'blue', weight: 1 }], // Custom route color (blue)
-							},
 							createMarker: function (i, wp) {
-								// Custom marker for start (user) and end (attraction)
-								const markerColor = i === 0 ? 'green' : 'red';
 								return L.marker(wp.latLng, {
-
-								}).bindPopup(i === 0 ? 'Your Location' : coordinates[0].label);
+									icon: L.divIcon({
+										html: `<div style="display: none; background-color: red; color: white; border-radius: 50%; width: 30px; height: 30px; text-align: center; line-height: 30px;">${i + 1}</div>`,
+										className: 'custom-div-icon',
+										iconSize: [0, 0],
+										iconAnchor: [0, 0],
+									}),
+								});
+							},
+							lineOptions: {
+								styles: [{ color: 'blue', opacity: 0.8, weight: 4, dashArray: '5, 10' }], 
 							},
 							routeWhileDragging: false,
 							draggableWaypoints: false,
 							addWaypoints: false,
+							show: false,
+						
 
 
 						}).addTo(map);
+					
 						updatedInitialView = true;
 					} else {
 						// Update the position of the existing user marker
 						userMarkerRef.current.setLatLng([userLat, userLng]);
 					}
-
-
+					const routingContainers = document.querySelectorAll('.leaflet-routing-container');
+					console.log('found containers >> ', routingContainers);
+					if (routingContainers.length > 0) {
+						console.log('removing all sidebars >>>>>');
+						routingContainers.forEach(container => {
+							container.style.display = 'none';
+						});
+					}
+				
 				},
 				(error) => {
 					console.error('Error getting location:', error);
 				}
+
+				
 			);
 		} else {
 			console.log('Geolocation is not supported by this browser.');
 		}
-
 		// Cleanup function to remove the map when component unmounts
 		return () => {
 			if (map) {
@@ -152,6 +164,7 @@ export default function MapPage() {
 		};
 	}, []);
 
+	
 	return <div>
 		<style jsx>{`
       .leaflet-routing-container {
