@@ -179,7 +179,7 @@ export default function MapPage() {
 		const baseLayers = {
 			'OpenStreetMap': openStreetMapLayer,
 			'Base Map': baseMapsLayer,
-			// 'Stadia': stadiamapsLayer,
+			'Stadia': stadiamapsLayer,
 			"Sattelite": satelliteLayer
 		};
 
