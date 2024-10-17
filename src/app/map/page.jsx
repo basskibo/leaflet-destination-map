@@ -1,9 +1,15 @@
-"use client"
+"use client";
 import { useEffect, useRef, useState } from 'react';
 import styles from './MapPage.module.css';
+
 const defaultCoordinates = [45.2552, 119.8426]; // Default center coordinates for the map
-const coordinates = [{ "label": "Petrovaradin Fortress", "lat": 45.2514, "lng": 19.8708 }, { "label": "The Name of Mary Church", "lat": 45.2552, "lng": 19.8426 }, { "label": "Dunavska Street", "lat": 45.2574, "lng": 19.8433 }, 
-	{ "label": "Danube Park", "lat": 45.26, "lng": 19.8455 }, { "label": "Danube Park", "lat": 45.2653657676428, "lng": 19.830854301049 }];
+const coordinates = [
+	{ "label": "Petrovaradin Fortress", "lat": 45.2514, "lng": 19.8708 },
+	{ "label": "The Name of Mary Church", "lat": 45.2552, "lng": 19.8426 },
+	{ "label": "Dunavska Street", "lat": 45.2574, "lng": 19.8433 },
+	{ "label": "Danube Park", "lat": 45.26, "lng": 19.8455 },
+	{ "label": "Z stanica", "lat": 45.2653657676428, "lng": 19.830854301049 }
+];
 
 const configuration = {
 	mapOptions: {
@@ -14,7 +20,9 @@ const configuration = {
 export default function MapPage() {
 	const [mapInitialized, setMapInitialized] = useState(false);
 	const userCentered = useRef(false); // Track whether the map was centered on the user's location
+	const userMarkerRef = useRef(null); // Reference to the user's marker to update its position
 	let updatedInitialView = false;
+
 	useEffect(() => {
 		// Check if the map already exists and reset if necessary
 		const existingMap = L.DomUtil.get('map');
@@ -71,12 +79,10 @@ export default function MapPage() {
 			show: false,
 		}).addTo(map);
 
-
 		const routingContainer = document.querySelector('.leaflet-routing-container');
 		if (routingContainer) {
-		  routingContainer.style.display = 'none';
+			routingContainer.style.display = 'none';
 		}
-	  
 
 		// Add user's current location to the map (optional)
 		if (navigator.geolocation) {
@@ -85,18 +91,24 @@ export default function MapPage() {
 					const userLat = position.coords.latitude;
 					const userLng = position.coords.longitude;
 
-					if(!updatedInitialView){
-						L.marker([userLat, userLng]).addTo(map)
-						.bindPopup('You are here!')
-						.openPopup();
+					if (!updatedInitialView) {
+						// Create a custom user marker (Google Maps-like blue dot)
+						const userIcon = L.divIcon({
+							html: `<div style="background-color: #4285F4; border-radius: 50%; width: 15px; height: 15px; border: 4px solid #a7c3f2;"></div>`,
+							className: 'user-location-icon',
+							iconSize: [15, 15],
+							iconAnchor: [7.5, 7.5],
+						});
+
+						userMarkerRef.current = L.marker([userLat, userLng], { icon: userIcon }).addTo(map)
+							.bindPopup('You are here!')
+							.openPopup();
 						map.setView([userLat, userLng], 15); // Adjust the zoom level if needed
 						updatedInitialView = true;
-					}else{
-						L.marker([userLat, userLng]).addTo(map)
-						.bindPopup('You are here!')
+					} else {
+						// Update the position of the existing user marker
+						userMarkerRef.current.setLatLng([userLat, userLng]);
 					}
-					
-					console.log('Updating marker ', userLat)
 				},
 				(error) => {
 					console.error('Error getting location:', error);
@@ -116,16 +128,15 @@ export default function MapPage() {
 
 	return <div>
 		<style jsx>{`
-        .leaflet-routing-container {
-          display: none !important;
-        }
-      `}</style>
+      .leaflet-routing-container {
+        display: none !important;
+      }
+    `}</style>
 		<div style={{
 			width: '100%', paddingLeft: '1rem', background: '#cecece', display: 'flex',
 			flexDirection: 'row', justifyContent: 'start', alignItems: 'center', gap: '2rem',
 			borderBottom: '2px solid #fed142', height: '3rem'
 		}}>
-			{/* <h2 style={{ textDecoration: 'underline' }}>Destinations Map</h2> */}
 			<a style={{
 				color: '#010101', fontWeight: 'bolder',
 				fontSize: '1.2rem', textDecoration: 'none'
