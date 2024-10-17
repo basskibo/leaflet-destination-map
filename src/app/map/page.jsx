@@ -31,6 +31,7 @@ const locateOptions = {
 
 export default function MapPage() {
 	const stadiaApiKey = process.env.NEXT_PUBLIC_STADIA_API_KEY;
+	console.log('KLEY ', stadiaApiKey)
 	const [mapInitialized, setMapInitialized] = useState(false);
 	const userCentered = useRef(false);
 	const userMarkerRef = useRef(null);
@@ -172,6 +173,10 @@ export default function MapPage() {
 			attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under ODbL.',
 		});
 		
+		const stadiaDarkLayer = L.tileLayer(`https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png&api_key=${stadiaApiKey}`, {
+			attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under ODbL.',
+		});
+		
 		const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
 			attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under ODbL.',
 		});
@@ -180,6 +185,7 @@ export default function MapPage() {
 			'OpenStreetMap': openStreetMapLayer,
 			'Base Map': baseMapsLayer,
 			'Stadia': stadiamapsLayer,
+			'Stadia Dark': stadiaDarkLayer,
 			"Sattelite": satelliteLayer
 		};
 
