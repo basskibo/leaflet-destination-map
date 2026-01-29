@@ -56,14 +56,24 @@ export default function Home() {
 		if (map) {
 			map.eachLayer((layer) => {
 				if (layer instanceof L.Marker) {
-					map.removeLayer(layer);
+					try {
+						if (map.hasLayer(layer)) {
+							map.removeLayer(layer);
+						}
+					} catch (e) {
+						// Ignore errors if layer is already removed or map is destroyed
+					}
 				}
 			});
 
 			destinations.forEach((destination) => {
-				L.marker([destination.lat, destination.lon])
-					.addTo(map)
-					.bindPopup(destination.name);
+				try {
+					L.marker([destination.lat, destination.lon])
+						.addTo(map)
+						.bindPopup(destination.name);
+				} catch (e) {
+					// Ignore errors if map is destroyed
+				}
 			});
 		}
 	}, [map, destinations]);

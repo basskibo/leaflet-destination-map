@@ -1,20 +1,45 @@
 "use client";
 import { useEffect, useRef, useState } from 'react';
-import styles from './MapPage.module.css';
+import * as L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
+import 'leaflet.locatecontrol/dist/L.Control.Locate.css';
+import 'leaflet.locatecontrol';
+import 'leaflet-routing-machine';
 
-const defaultCoordinates = [45.2514, 19.8708];
-const coordinates = [
+interface Coordinate {
+	label: string;
+	lat: number;
+	lng: number;
+}
+
+interface MapConfig {
+	mapOptions: {
+		os_layer: string;
+		gm_layer: string;
+		sat: string;
+		osmb: string;
+	};
+}
+
+interface LocateOptions {
+	setView: string;
+	flyTo: boolean;
+}
+
+const defaultCoordinates: [number, number] = [45.2514, 19.8708];
+const coordinates: Coordinate[] = [
 	{ label: "Kej", lat: 45.252869724193786, lng: 19.856360549467105 },
 	{ label: "Petrovaradin Fortress", lat: 45.2514, lng: 19.8708 },
 	{ label: "The Cathedral", lat: 45.2552, lng: 19.8426 },
-	// { label: "Dunavska Street", lat: 45.2574, lng: 19.8433 },
 	{ label: "Danube Park", lat: 45.255300574496346, lng: 19.85088770730801 },
-	{ label: "Z stanica", lat: 45.2653657676428, lng: 19.830854301049 },
 	{ label: "Novi Park", lat: 45.25605768553349, lng: 19.80846 },
-	
+    { label: "Suboticka", lat: 45.242686 , lng: 19.81603 },
+    { label: "Limanski park", lat: 45.23813827085418, lng:19.8398908809267 },
+
 ];
 
-const mapConfig = {
+const mapConfig: MapConfig = {
 	mapOptions: {
 		os_layer: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
 		gm_layer: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
@@ -23,40 +48,39 @@ const mapConfig = {
 	},
 };
 
-
-const locateOptions = {
+const locateOptions: LocateOptions = {
 	setView: 'untilPanOrZoom',
 	flyTo: true
-}
+};
 
 export default function MapPage() {
-	const stadiaApiKey = process.env.NEXT_PUBLIC_STADIA_API_KEY;
-	console.log('KLEY ', stadiaApiKey)
-	const [mapInitialized, setMapInitialized] = useState(false);
-	const userCentered = useRef(false);
-	const userMarkerRef = useRef(null);
-	const routingControlRef = useRef(null);
+	const stadiaApiKey: string | undefined = process.env.NEXT_PUBLIC_STADIA_API_KEY;
+	console.log('KLEY ', stadiaApiKey);
+	const [mapInitialized, setMapInitialized] = useState<boolean>(false);
+	const userCentered = useRef<boolean>(false);
+	const userMarkerRef = useRef<L.Marker | null>(null);
+	const routingControlRef = useRef<L.Routing.RoutingControl | null>(null);
 	let updatedInitialView = false;
 
 	useEffect(() => {
-		const existingMap = L.DomUtil.get('map');
-		if (existingMap && existingMap._leaflet_id != null) {
-			existingMap._leaflet_id = null;
+		const existingMap = L.DomUtil.get('map') as HTMLElement | null;
+		if (existingMap && (existingMap as any)._leaflet_id != null) {
+			(existingMap as any)._leaflet_id = null;
 		}
-		console.log('useEffect:: updating the view ')
+		console.log('useEffect:: updating the view ');
 		const map = L.map('map').setView([coordinates[0].lat, coordinates[0].lng], 15);
-
 
 		// L.tileLayer(mapConfig.mapOptions.gm_layer, {
 		// 	maxZoom: 20,
 		// 	minZoom: 0,
 		// 	attribution: '',
 		// }).addTo(map);
-		L.control.locate().addTo(map);
+		const locateControl = L.control.locate();
+		locateControl.addTo(map);
 
 		coordinates.forEach((location, index) => {
 			const customIcon = L.divIcon({
-				html: `<div style="background-color: #7B0F0F; border: '5px solid #000'; color: white; border-radius: 50%; width: 30px; height: 30px; text-align: center; line-height: 30px; font-weight: bolder; font-size: 20px">${index + 1}</div>`,
+				html: `<div style="background-color:rgb(148, 68, 68); border: '5px solid #000'; color: white; border-radius: 50%; width: 30px; height: 30px; text-align: center; line-height: 30px; font-weight: bolder; font-size: 20px">${index + 1}</div>`,
 				className: 'custom-div-icon',
 				iconSize: [30, 30],
 				iconAnchor: [15, 30],
@@ -71,15 +95,15 @@ export default function MapPage() {
 			L.latLng(location.lat, location.lng)
 		);
 
-		L.Routing.control({
+		const routingControl = L.Routing.control({
 			waypoints: waypoints,
 			router: L.Routing.osrmv1({
 				serviceUrl: 'https://router.project-osrm.org/route/v1',
 			}),
 			lineOptions: {
-				styles: [{ color: '#B61010', opacity:1 , weight: 5 }],
+				styles: [{ color: '#B61010', opacity: 1, weight: 5 }],
 			},
-			createMarker: (i, wp) => {
+			createMarker: (i: number, wp: any) => {
 				return L.marker(wp.latLng, {
 					icon: L.divIcon({
 						html: `<div style="background-color: #B61010; color: white; border-radius: 5%; width:100%; height: 30px; font-weight: bolder; text-align:  center; line-height: 30px;">${coordinates[i].label}</div>`,
@@ -93,73 +117,10 @@ export default function MapPage() {
 			draggableWaypoints: false,
 			addWaypoints: false,
 			show: false,
-		}).addTo(map);
+		});
+		routingControl.addTo(map);
 
 		removeRoutingTable();
-
-		// if (navigator.geolocation) {
-		// 	let routeUpdateTimer;
-		// 	navigator.geolocation.watchPosition(
-		// 		(position) => {
-		// 			const userLat = position.coords.latitude;
-		// 			const userLng = position.coords.longitude;
-
-		// 			if (!updatedInitialView) {
-		// 				const userIcon = L.divIcon({
-		// 					html: `<div style="background-color: #4285F4; border-radius: 50%; width: 15px; height: 15px; border: 10px solid #a7c3f2;"></div>`,
-		// 					className: 'user-location-icon',
-		// 					iconSize: [15, 15],
-		// 					iconAnchor: [7.5, 7.5],
-		// 				});
-
-		// 				userMarkerRef.current = L.marker([userLat, userLng], { icon: userIcon }).addTo(map);
-		// 				console.log('On user location change >>>')
-		// 				// map.setView([userLat, userLng], 13);
-
-		// 				routingControlRef.current = L.Routing.control({
-		// 					waypoints: [
-		// 						L.latLng(userLat, userLng),
-		// 						L.latLng(coordinates[0].lat, coordinates[0].lng),
-		// 					],
-		// 					router: L.Routing.osrmv1({
-		// 						serviceUrl: 'https://router.project-osrm.org/route/v1',
-		// 					}),
-		// 					createMarker: () => null,
-		// 					lineOptions: {
-		// 						styles: [{ color: 'blue', opacity: 0.8, weight: 4, dashArray: '5, 10' }],
-		// 					},
-		// 					routeWhileDragging: false,
-		// 					draggableWaypoints: false,
-		// 					addWaypoints: false,
-		// 					show: false,
-		// 				}).addTo(map);
-		// 				removeRoutingTable();
-		// 				updatedInitialView = true;
-		// 			} else {
-		// 				userMarkerRef.current.setLatLng([userLat, userLng]);
-
-		// 				if (!routeUpdateTimer) {
-		// 					routeUpdateTimer = setTimeout(() => {
-		// 						routingControlRef.current.setWaypoints([
-		// 							L.latLng(userLat, userLng),
-		// 							L.latLng(coordinates[0].lat, coordinates[0].lng),
-		// 						]);
-		// 						routeUpdateTimer = null;
-		// 					}, 1500);
-		// 				}
-		// 			}
-		// 		},
-		// 		(error) => console.error('Error getting location:', error),
-		// 		{
-		// 			maximumAge: 3000,
-		// 			timeout: 5000,
-		// 			enableHighAccuracy: true,
-		// 		}
-		// 	);
-		// } else {
-		// 	console.log('Geolocation is not supported by this browser.');
-		// }
-
 
 		const openStreetMapLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 			attribution: '© OpenStreetMap contributors',
@@ -169,19 +130,19 @@ export default function MapPage() {
 			attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under ODbL.',
 		});
 
-		const stadiamapsLayer = L.tileLayer(`https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.png&api_key=${stadiaApiKey}`, {
+		const stadiamapsLayer = L.tileLayer(`https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.png&api_key=${stadiaApiKey || ''}`, {
 			attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under ODbL.',
 		});
-		
-		const stadiaDarkLayer = L.tileLayer(`https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png&api_key=${stadiaApiKey}`, {
+
+		const stadiaDarkLayer = L.tileLayer(`https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png&api_key=${stadiaApiKey || ''}`, {
 			attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under ODbL.',
 		});
-		
+
 		const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
 			attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under ODbL.',
 		});
 
-		const baseLayers = {
+		const baseLayers: { [key: string]: L.TileLayer } = {
 			'OpenStreetMap': openStreetMapLayer,
 			'Base Map': baseMapsLayer,
 			// 'Stadia': stadiamapsLayer,
@@ -189,14 +150,61 @@ export default function MapPage() {
 			"Sattelite": satelliteLayer
 		};
 
-		L.control.layers(baseLayers).addTo(map);
-		return () => map && map.remove();
+		const layersControl = L.control.layers(baseLayers);
+		layersControl.addTo(map);
+
+		return () => {
+			try {
+				// Remove controls before removing the map to prevent cleanup errors
+				if (routingControl) {
+					try {
+						map.removeControl(routingControl as any);
+					} catch (e) {
+						// Control might already be removed
+					}
+				}
+				if (locateControl) {
+					try {
+						map.removeControl(locateControl as any);
+					} catch (e) {
+						// Control might already be removed
+					}
+				}
+				if (layersControl) {
+					try {
+						map.removeControl(layersControl);
+					} catch (e) {
+						// Control might already be removed
+					}
+				}
+				// Remove all layers before removing the map
+				map.eachLayer((layer) => {
+					try {
+						if (map.hasLayer(layer)) {
+							map.removeLayer(layer);
+						}
+					} catch (e) {
+						// Ignore errors if layer is already removed
+					}
+				});
+				// Finally remove the map
+				if (map) {
+					map.remove();
+				}
+			} catch (e) {
+				// If map is already removed, just clear the container
+				const mapContainer = document.getElementById('map');
+				if (mapContainer) {
+					mapContainer.innerHTML = '';
+				}
+			}
+		};
 	}, []);
 
-	const removeRoutingTable = () => {
+	const removeRoutingTable = (): void => {
 		const routingContainers = document.querySelectorAll('.leaflet-routing-container');
-		routingContainers.forEach(container => {
-			container.style.display = 'none';
+		routingContainers.forEach((container) => {
+			(container as HTMLElement).style.display = 'none';
 		});
 	};
 
@@ -248,3 +256,4 @@ export default function MapPage() {
 		</div>
 	);
 }
+
